@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nammakelasa.ui.components.AppButton
 import com.example.nammakelasa.ui.components.AppTextField
+import com.example.nammakelasa.utils.NetworkUtils
 import com.example.nammakelasa.viewmodel.AuthViewModel
 
 @Composable
@@ -26,6 +27,10 @@ fun WorkerLoginScreen(
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.clearError()
+    }
 
     LaunchedEffect(error) {
         error?.let {
@@ -72,6 +77,10 @@ fun WorkerLoginScreen(
             AppButton(
                 text = "Login",
                 onClick = {
+                    if (!NetworkUtils.isNetworkAvailable(context)) {
+                        Toast.makeText(context, "No network connection.", Toast.LENGTH_SHORT).show()
+                        return@AppButton
+                    }
                     if (email.isNotEmpty() && password.isNotEmpty()) {
                         viewModel.signIn(email, password, onLoginSuccess)
                     } else {

@@ -2,6 +2,7 @@ package com.example.nammakelasa.ui.screens
 
 import android.Manifest
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -144,17 +145,25 @@ fun ProfileEditScreen(
                 trailingIcon = {
                     IconButton(onClick = {
                         if (locationPermissionState.status.isGranted) {
-                            scope.launch {
-                                val loc = locationHelper.getCurrentLocation()
-                                if (loc != null) {
-                                    latitude = loc.latitude
-                                    longitude = loc.longitude
-                                    locationName = locationHelper.getAddressFromLocation(loc.latitude, loc.longitude)
-                                } else {
-                                    Toast.makeText(context, "Could not get location", Toast.LENGTH_SHORT).show()
+                            if (locationHelper.isLocationEnabled()) {
+                                scope.launch {
+                                    val loc = locationHelper.getCurrentLocation()
+                                    if (loc != null) {
+                                        latitude = loc.latitude
+                                        longitude = loc.longitude
+                                        locationName = locationHelper.getAddressFromLocation(loc.latitude, loc.longitude)
+                                        Toast.makeText(context, "Location updated", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Log.e("ProfileEdit", "Failed to get location from helper")
+                                        Toast.makeText(context, "Could not get precise location. Try again or enter manually.", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
+                            } else {
+                                Log.w("ProfileEdit", "Location services are disabled")
+                                Toast.makeText(context, "Location services are disabled. Please enable GPS.", Toast.LENGTH_LONG).show()
                             }
                         } else {
+                            Log.i("ProfileEdit", "Requesting location permission")
                             locationPermissionState.launchPermissionRequest()
                         }
                     }) {
